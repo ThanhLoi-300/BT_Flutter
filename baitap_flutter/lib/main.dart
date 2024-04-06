@@ -1,3 +1,4 @@
+import 'package:baitap_flutter/NotesSQLite/NoteHomeUi.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -44,21 +45,36 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NoteHomeUI(),
+                    ),
+                  );
+                },
+                child: const Text(
+                  "SQLite",
+                )),
+            const SizedBox(
+              width: 10,
+            ),
+            ElevatedButton(
                 onPressed: () {},
                 child: const Text(
                   "Firebase",
                 )),
-
-            const SizedBox( width: 10, ),
-
+            const SizedBox(
+              width: 10,
+            ),
             ElevatedButton(
                 onPressed: () {},
                 child: const Text(
                   "Camera",
                 )),
-            
-            const SizedBox( width: 10, ),
-
+            const SizedBox(
+              width: 10,
+            ),
             ElevatedButton(
                 onPressed: () {},
                 child: const Text(
