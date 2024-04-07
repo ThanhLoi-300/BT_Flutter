@@ -2,7 +2,6 @@ import 'package:baitap_flutter/NotesSQLite/AddOrUpdateNote.dart';
 import 'package:flutter/material.dart';
 
 import './database/NoteDbHelper.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class NoteHomeUI extends StatefulWidget {
   const NoteHomeUI({super.key});
@@ -12,11 +11,40 @@ class NoteHomeUI extends StatefulWidget {
 }
 
 class _NoteHomeUIState extends State<NoteHomeUI> {
+  TextEditingController searchController = TextEditingController();
+  List<Map<String, dynamic>> listNotes = [];
 
-  deletedatabase(snap, index) {
-    NoteDbHelper.instance.delete(snap.data![index][NoteDbHelper.colid]);
+  deletedatabase(id) {
+    NoteDbHelper.instance.delete(id);
   }
-  
+
+  void loadNoteList() async {
+    final noteList = await NoteDbHelper.instance.queryAll();
+    setState(() {
+      listNotes = noteList;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadNoteList();
+    //Thêm event cho thanh search
+    searchController.addListener(() async {
+      String query = searchController.text;
+      List<Map<String, dynamic>> results;
+
+      if (query.isEmpty) {
+        results = await NoteDbHelper.instance.queryAll();
+      } else {
+        results = await NoteDbHelper.instance.searchNotes(query);
+      }
+
+      setState(() {
+        listNotes = results;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,78 +52,61 @@ class _NoteHomeUIState extends State<NoteHomeUI> {
       appBar: AppBar(
           toolbarHeight: MediaQuery.of(context).size.height * 0.07,
           title: const Text('Note App')),
-      body: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Container(
-          height: MediaQuery.of(context).size.height * 0.8,
-          child: FutureBuilder(
-            future: NoteDbHelper.instance.queryAll(),
-            builder: (context, AsyncSnapshot<List<Map<String, dynamic>>> snap) {
-              if (snap.hasData) {
-                return ListView.builder(
-                  itemCount: snap.data!.length,
-                  itemBuilder: (context, index) {
-                    return Card(
-                      child: ListTile(
-                        leading: IconButton(
-                            onPressed: () {
-                              Navigator.pushReplacement(context,
-                                  MaterialPageRoute(
-                                builder: (context) {
-                                  return AddOrUpdateNote(
-                                    id: snap.data![index]['id'],
-                                  );
-                                },
-                              ));
-                            },
-                            icon: const Icon(Icons.edit)),
-                        title:
-                            Text(snap.data![index][NoteDbHelper.coltittle]),
-                        subtitle: Text(
-                            snap.data![index][NoteDbHelper.coldescription]),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              snap.data![index][NoteDbHelper.coldate]
-                                  .toString()
-                                  .substring(0, 10),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                deletedatabase(snap, index);
-                                Navigator.pushReplacement(context,
-                                    MaterialPageRoute(
-                                  builder: (context) {
-                                    return const NoteHomeUI();
-                                  },
-                                ));
-                              },
-                              icon: const Icon(Icons.delete),
-                            ),
-                          ],
-                        ),
-
-                      ),
-                    );
-                  },
-                );
-              } else {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-            },
+      body: Column(children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            controller: searchController,
+            decoration: const InputDecoration(
+              labelText: 'Search',
+            ),
           ),
         ),
-      ),
+        Expanded(
+          child: ListView.builder(
+              itemCount: listNotes.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  leading: IconButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(context, MaterialPageRoute(
+                          builder: (context) {
+                            return AddOrUpdateNote(
+                              id: listNotes[index]['id'],
+                            );
+                          },
+                        ));
+                      },
+                      icon: const Icon(Icons.edit)),
+                  title: Text(listNotes[index]['title']),
+                  subtitle: Text(listNotes[index]['description']),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text( listNotes[index]['date'], ),
+                      IconButton(
+                        onPressed: () {
+                          deletedatabase(listNotes[index]['id']);
+                          Navigator.pushReplacement(context,
+                              MaterialPageRoute(
+                            builder: (context) {
+                              return const NoteHomeUI();
+                            },
+                          ));
+                        },
+                        icon: const Icon(Icons.delete),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+        )
+      ]),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(
             builder: (context) {
-              return AddOrUpdateNote(
-                id: null,
-              );
+              return AddOrUpdateNote( id: null, );
             },
           ));
         },

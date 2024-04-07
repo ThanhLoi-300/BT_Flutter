@@ -18,19 +18,16 @@ class _AddOrUpdateNoteState extends State<AddOrUpdateNote> {
   Future<bool> insertdatabase(String title, String description) async {
     List<Map<String, dynamic>> list = await NoteDbHelper.instance.queryAll();
 
-    bool titleExists =
-        list.any((note) => note[NoteDbHelper.coltittle] == title);
-    debugPrint("Title ");
+    bool titleExists = list.any((note) => note['title'] == title);
+
     if (titleExists) {
-      debugPrint("Title already exists");
       return true;
     } else {
       NoteDbHelper.instance.insert({
-        NoteDbHelper.coltittle: title,
-        NoteDbHelper.coldescription: description,
-        NoteDbHelper.coldate: DateTime.now().toString(),
+        'title': title,
+        'description': description,
+        'date': DateTime.now().toString(),
       });
-      debugPrint("Insert successfully");
       return false;
     }
   }
@@ -40,8 +37,7 @@ class _AddOrUpdateNoteState extends State<AddOrUpdateNote> {
     bool checkTitle = false;
 
     for (var note in notes) {
-      if (note[NoteDbHelper.coltittle] == title &&
-          note[NoteDbHelper.colid] != id) {
+      if (note['tittle'] == title && note['id'] != id) {
         checkTitle = true;
         break;
       }
@@ -50,10 +46,10 @@ class _AddOrUpdateNoteState extends State<AddOrUpdateNote> {
       return true;
     } else {
       NoteDbHelper.instance.update({
-        NoteDbHelper.colid: id,
-        NoteDbHelper.coltittle: title,
-        NoteDbHelper.coldescription: description,
-        NoteDbHelper.coldate: DateTime.now().toString(),
+        'id': id,
+        'title': title,
+        'description': description,
+        'date': DateTime.now().toString(),
       });
       return false;
     }
@@ -115,32 +111,19 @@ class _AddOrUpdateNoteState extends State<AddOrUpdateNote> {
                   hintText: "Enter Title",
                 ),
               ),
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox( height: 10, ),
               TextField(
                   controller: descController,
                   decoration: const InputDecoration(
                     hintText: "Enter Description",
                   )),
-              const SizedBox(
-                height: 10,
-              ),
-              TextField(
-                  controller: timeController,
-                  decoration: const InputDecoration(
-                    hintText: "Enter Time",
-                  )),
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox( height: 10, ),
               Row(
                 children: [
                   TextButton(
                       onPressed: () {
                         if (titleController.text.isEmpty ||
-                            descController.text.isEmpty ||
-                            timeController.text.isEmpty) {
+                            descController.text.isEmpty ) {
                           Fluttertoast.showToast(
                             msg: 'Vui lòng điền đầy đủ',
                             toastLength: Toast.LENGTH_SHORT,
@@ -149,15 +132,18 @@ class _AddOrUpdateNoteState extends State<AddOrUpdateNote> {
                             textColor: Colors.white,
                           );
                         } else {
-                          handleSaveButton(widget.id, titleController.text,
-                              descController.text);
+                          handleSaveButton(widget.id, titleController.text, descController.text);
                         }
                       },
                       child: Text(widget.id == null ? 'Create' : 'Save')),
                   const SizedBox(width: 10),
                   TextButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        Navigator.pushReplacement(context, MaterialPageRoute(
+                          builder: (context) {
+                            return const NoteHomeUI();
+                          },
+                        ));
                       },
                       child: const Text('Cancel')),
                 ],

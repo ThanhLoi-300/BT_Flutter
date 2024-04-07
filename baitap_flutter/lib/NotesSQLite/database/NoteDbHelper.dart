@@ -48,11 +48,21 @@ class NoteDbHelper {
     return await db!.query(tablename);
   }
 
+  Future<List<Map<String, dynamic>>> searchNotes(String query) async {
+    var dbClient = await db;
+    var result = await dbClient!.query(
+      'notes',
+      where: 'title LIKE ?',
+      whereArgs: ['%$query%'],
+    );
+    return result;
+  }
+
   Future<Map<String, dynamic>?> getDataById(int id) async {
     Database? db = await instance.db;
     List<Map<String, dynamic>> result = await db!.query(
       tablename,
-      where: '$colid = ?',
+      where: 'id = ?',
       whereArgs: [id],
     );
     return result.isNotEmpty ? result.first : null;
@@ -60,14 +70,13 @@ class NoteDbHelper {
 
   Future<int> update(Map<String, dynamic> row) async {
     Database? db = await instance.db;
-    int id = row[colid];
-    return await db!
-        .update(tablename, row, where: '$colid = ?', whereArgs: [id]);
+    int id = row['id'];
+    return await db!.update(tablename, row, where: 'id = ?', whereArgs: [id]);
   }
 
   Future<int> delete(int id) async {
     Database? db = await instance.db;
-    return await db!.delete(tablename, where: '$colid = ?', whereArgs: [id]);
+    return await db!.delete(tablename, where: 'id = ?', whereArgs: [id]);
   }
 
   Future close() async {
